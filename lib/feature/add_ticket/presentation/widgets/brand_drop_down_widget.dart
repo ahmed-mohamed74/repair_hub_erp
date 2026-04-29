@@ -9,7 +9,10 @@ class BrandDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InputDecorator(
-      decoration: const InputDecoration(labelText: 'Brand'),
+      decoration: const InputDecoration(
+        labelText: 'Brand',
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: currentBrand,

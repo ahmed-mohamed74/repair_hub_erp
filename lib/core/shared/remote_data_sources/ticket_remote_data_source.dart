@@ -7,6 +7,7 @@ abstract class TicketRemoteDataSource {
   Future<List<Map<String, dynamic>>> searchTickets(String query);
   Future<Map<String, dynamic>> getTicketById(String ticketId);
   Future<void> updateTicket(String ticketId, String status, String notes);
+  Future<Map<String, dynamic>?> getTicketByIdOrImei(String query);
 
   // Updated to handle the full intake process including photos
   Future<String> createFullTicket({
@@ -112,5 +113,24 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
           'public_notes': notes,
         })
         .eq('id', ticketId);
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getTicketByIdOrImei(String query) async {
+    try {
+      final int? ticketNum = int.tryParse(query);
+
+      var supabaseQuery = client.from(DbKeys.viewTicketTracking).select();
+
+      if (ticketNum != null) {
+        return await supabaseQuery
+            .or('${DbKeys.ticketNumber}.eq.$ticketNum,imei.eq.$query')
+            .maybeSingle();
+      } else {
+        return await supabaseQuery.eq('imei', query).maybeSingle();
+      }
+    } catch (e) {
+      throw Exception("Failed to fetch tracking data: $e");
+    }
   }
 }

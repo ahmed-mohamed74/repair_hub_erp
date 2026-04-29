@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:repair_hub/feature/app_home/view/home_cubit/home_cubit.dart';
+import 'package:repair_hub/feature/customer_website/data/repository/web_tracking_repo.dart';
+import 'package:repair_hub/feature/customer_website/presentation/cubit/web_tracking_cubit.dart';
 import 'package:repair_hub/feature/ticket_details/data/repository/ticket_details_repo.dart';
 import 'package:repair_hub/feature/ticket_details/presentation/cubit/ticket_details_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -43,6 +45,11 @@ void configureDependencies() {
     () => TicketDetailsRepository(serviceLocator<TicketRemoteDataSource>()),
   );
 
+  // NEW: Register Web Tracking Repository
+  serviceLocator.registerLazySingleton<WebTrackingRepository>(
+    () => WebTrackingRepository(serviceLocator<TicketRemoteDataSource>()),
+  );
+
   // 4. Cubits
 
   // Add Ticket Cubit (Factory: Resets when opening the page)
@@ -58,5 +65,10 @@ void configureDependencies() {
   // NEW: Register Ticket Details Cubit
   serviceLocator.registerFactory(
     () => TicketDetailsCubit(serviceLocator<TicketDetailsRepository>()),
+  );
+
+  // NEW: Register Web Tracking Cubit
+  serviceLocator.registerFactory(
+    () => WebTrackingCubit(serviceLocator<WebTrackingRepository>()),
   );
 }

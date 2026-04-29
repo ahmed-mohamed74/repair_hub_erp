@@ -74,17 +74,7 @@ class _AddTicketPageState extends State<AddTicketPage> {
   }
 
   void _submitForm() {
-    // 1. Trigger the built-in validators
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    // 2. Additional check for photos if you want them required
-    // if (context.read<AddTicketCubit>().state.photoPaths.every((p) => p.isEmpty)) {
-    //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one photo')));
-    //   return;
-    // }
-
+    if (!_formKey.currentState!.validate()) return;
     context.read<AddTicketCubit>().submit(
       name: _customerNameController.text.trim(),
       phone: _customerPhoneController.text.trim(),
@@ -97,205 +87,285 @@ class _AddTicketPageState extends State<AddTicketPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AddTicketCubit, AddTicketState>(
-      listener: (context, state) {
-        if (state.status == AddTicketStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Repair Ticket Created Successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          context.pushReplacement(
-            AppRoutes.ticketDetails,
-            extra: state.successTicketId,
-          );
-        } else if (state.status == AddTicketStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? 'An error occurred'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(title: const Text('New Repair Ticket')),
-        body: BlocBuilder<AddTicketCubit, AddTicketState>(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
+      child: BlocListener<AddTicketCubit, AddTicketState>(
+        listener: (context, state) {
+          if (state.status == AddTicketStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Repair Ticket Created Successfully!'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            context.pushReplacement(
+              AppRoutes.ticketDetails,
+              extra: state.successTicketId,
+            );
+          } else if (state.status == AddTicketStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'An error occurred'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<AddTicketCubit, AddTicketState>(
           builder: (context, state) {
             final isSubmitting = state.status == AddTicketStatus.loading;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Form(
-                key: _formKey, // Added Form key
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const HeaderSection(),
-                    const SizedBox(height: 20),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('New Repair Ticket'),
+                centerTitle: true,
+              ),
+              // --- Static Bottom Button ---
+              bottomNavigationBar: SafeArea(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        offset: const Offset(0, -4),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: FilledButton(
+                    onPressed: isSubmitting ? null : _submitForm,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Create Repair Ticket',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(10),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const HeaderSection(),
+                      const SizedBox(height: 24),
+
+                      // --- Customer Information Section ---
+                      _buildSectionTitle(context, 'Customer Details'),
+                      _buildInputCard([
+                        _buildTextField(
+                          label: 'Full Name',
+                          controller: _customerNameController,
+                          icon: Icons.person_outline,
+                          hint: 'e.g. John Doe',
+                          enabled: !isSubmitting,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          label: 'Contact Number',
+                          controller: _customerPhoneController,
+                          icon: Icons.phone_outlined,
+                          hint: '01XXXXXXXXX',
+                          keyboardType: TextInputType.phone,
+                          enabled: !isSubmitting,
+                        ),
+                      ]),
+
+                      const SizedBox(height: 24),
+
+                      // --- Device Information Section ---
+                      _buildSectionTitle(context, 'Device Details'),
+                      _buildInputCard([
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const FieldLabel('Customer Name'),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _customerNameController,
-                              enabled: !isSubmitting,
-                              decoration: const InputDecoration(
-                                hintText: 'Full name',
+                            Expanded(
+                              child: _buildTextField(
+                                label: 'IMEI / Serial Number',
+                                controller: _imeiController,
+                                icon: Icons.fingerprint,
+                                hint: 'Enter or scan IMEI',
+                                enabled: !isSubmitting,
                               ),
-                              validator: (val) =>
-                                  val!.trim().isEmpty ? 'Required' : null,
                             ),
-                            const SizedBox(height: 16),
-                            const FieldLabel('Contact Number'),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _customerPhoneController,
-                              enabled: !isSubmitting,
-                              keyboardType: TextInputType.phone,
-                              decoration: const InputDecoration(
-                                hintText: '01XXXXXXXXX',
+                            const SizedBox(width: 12),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 28),
+                              child: IconButton.filledTonal(
+                                onPressed: isSubmitting
+                                    ? null
+                                    : _openImeiScanner,
+                                icon: const Icon(Icons.qr_code_scanner),
+                                tooltip: 'Scan IMEI',
                               ),
-                              validator: (val) =>
-                                  val!.trim().isEmpty ? 'Required' : null,
-                            ),
-                            const SizedBox(height: 20),
-                            const FieldLabel('IMEI / Serial Number'),
-                            const SizedBox(height: 8),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _imeiController,
-                                    enabled: !isSubmitting,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter or scan IMEI',
-                                    ),
-                                    validator: (val) =>
-                                        val!.trim().isEmpty ? 'Required' : null,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: IconButton.filled(
-                                    onPressed: isSubmitting
-                                        ? null
-                                        : _openImeiScanner,
-                                    icon: const Icon(Icons.qr_code_scanner),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: BrandDropdown(
-                                    currentBrand: state.brand,
-                                    onChanged: isSubmitting
-                                        ? null
-                                        : (val) => context
-                                              .read<AddTicketCubit>()
-                                              .updateBrand(val!),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  flex: 3,
-                                  child: TextFormField(
-                                    controller: _modelController,
-                                    enabled: !isSubmitting,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Model',
-                                      hintText: 'e.g., iPhone 15',
-                                    ),
-                                    validator: (val) =>
-                                        val!.trim().isEmpty ? 'Required' : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            const FieldLabel('Estimated Price (EGP)'),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _priceController,
-                              enabled: !isSubmitting,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: const InputDecoration(
-                                hintText: '0.00',
-                                prefixIcon: Icon(Icons.attach_money),
-                              ),
-                              validator: (val) {
-                                if (val == null || val.isEmpty) {
-                                  return 'Required';
-                                }
-                                if (double.tryParse(val) == null) {
-                                  return 'Invalid amount';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            const FieldLabel('Problem Description'),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _descriptionController,
-                              enabled: !isSubmitting,
-                              maxLines: 4,
-                              decoration: const InputDecoration(
-                                hintText: 'Describe the issue...',
-                              ),
-                              validator: (val) =>
-                                  val!.trim().isEmpty ? 'Required' : null,
-                            ),
-                            const SizedBox(height: 24),
-                            const FieldLabel('Device Photos'),
-                            const SizedBox(height: 12),
-                            PhotoRow(
-                              photoPaths: state.photoPaths,
-                              onSlotTap: (i) => _onPhotoSlotTap(i, state),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: FilledButton(
-                        onPressed: isSubmitting ? null : _submitForm,
-                        child: isSubmitting
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Create Repair Ticket'),
-                      ),
-                    ),
-                  ],
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: BrandDropdown(
+                                currentBrand: state.brand,
+                                onChanged: isSubmitting
+                                    ? null
+                                    : (val) => context
+                                          .read<AddTicketCubit>()
+                                          .updateBrand(val!),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              flex: 3,
+                              child: _buildTextField(
+                                label: 'Model',
+                                controller: _modelController,
+                                hint: 'e.g. iPhone 15 Pro',
+                                enabled: !isSubmitting,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          label: 'Estimated Price (EGP)',
+                          controller: _priceController,
+                          icon: Icons.payments_outlined,
+                          hint: '0.00',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          enabled: !isSubmitting,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Required';
+                            if (double.tryParse(val) == null) return 'Invalid';
+                            return null;
+                          },
+                        ),
+                      ]),
+
+                      const SizedBox(height: 24),
+
+                      // --- Problem & Photos Section ---
+                      _buildSectionTitle(context, 'Issue Description'),
+                      _buildInputCard([
+                        _buildTextField(
+                          label: 'Problem Details',
+                          controller: _descriptionController,
+                          hint: 'Describe what needs fixing...',
+                          maxLines: 4,
+                          enabled: !isSubmitting,
+                        ),
+                        const SizedBox(height: 20),
+                        const FieldLabel('Device Photos'),
+                        const SizedBox(height: 8),
+                        PhotoRow(
+                          photoPaths: state.photoPaths,
+                          onSlotTap: (i) => _onPhotoSlotTap(i, state),
+                        ),
+                      ]),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  // --- UI Helper Widgets ---
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputCard(List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    String? hint,
+    IconData? icon,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    bool enabled = true,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FieldLabel(label),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          enabled: enabled,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          validator:
+              validator ?? (val) => val!.trim().isEmpty ? 'Required' : null,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: icon != null ? Icon(icon, size: 20) : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
