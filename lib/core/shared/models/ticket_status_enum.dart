@@ -3,9 +3,7 @@ enum TicketStatus {
   diagnosing,
   waitingForParts,
   repairing,
-  readyForPickup,
-  completed,
-  cancelled;
+  readyForPickup;
 
   // Helper to get enum from string safely
   static TicketStatus fromString(String status) {

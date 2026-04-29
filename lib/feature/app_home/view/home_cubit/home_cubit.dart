@@ -13,15 +13,18 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit({required this.repository}) : super(HomeInitial());
 
   Future<void> loadTickets() async {
-    // 1. Emit loading to clear the previous screen state
     emit(HomeLoading());
 
     final result = await repository.fetchAllTickets();
 
     result.fold((error) => emit(HomeFailure(error)), (tickets) {
-      // 2. Clear local cache and update with fresh data
-      _allTickets = List.from(tickets);
-      emit(HomeSuccess(_allTickets));
+      _allTickets = tickets;
+      emit(
+        HomeSuccess(
+          tickets: List<Map<String, dynamic>>.from(tickets),
+          timestamp: DateTime.now(),
+        ),
+      );
     });
   }
 
@@ -29,7 +32,7 @@ class HomeCubit extends Cubit<HomeState> {
     _currentSearchQuery = query;
 
     if (query.isEmpty) {
-      emit(HomeSuccess(_allTickets));
+      emit(HomeSuccess(tickets: _allTickets, timestamp: DateTime.now()));
       return;
     }
 
@@ -51,7 +54,7 @@ class HomeCubit extends Cubit<HomeState> {
     }).toList();
 
     // Update UI immediately with local results
-    emit(HomeSuccess(localFiltered));
+    emit(HomeSuccess(tickets: localFiltered, timestamp: DateTime.now()));
 
     // 2. REMOTE FETCH
     try {
@@ -61,7 +64,9 @@ class HomeCubit extends Cubit<HomeState> {
         result.fold((error) => null, (remoteResults) {
           // Update the list with server results if they differ
           if (remoteResults.isNotEmpty) {
-            emit(HomeSuccess(remoteResults));
+            emit(
+              HomeSuccess(tickets: remoteResults, timestamp: DateTime.now()),
+            );
           }
         });
       }

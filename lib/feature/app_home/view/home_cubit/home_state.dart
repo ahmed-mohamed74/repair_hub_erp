@@ -21,7 +21,7 @@ class HomeSuccess extends HomeState {
   // This helps Bloc know the state is different even if the data looks similar
   final DateTime timestamp;
 
-  HomeSuccess(this.tickets) : timestamp = DateTime.now();
+  HomeSuccess({required this.tickets, required this.timestamp});
 
   @override
   List<Object?> get props => [tickets, timestamp];

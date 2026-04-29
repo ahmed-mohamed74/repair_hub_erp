@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:repair_hub/core/depndency_injection/service_locator.dart';
+import 'package:repair_hub/core/dependency_injection/service_locator.dart';
 import 'package:repair_hub/feature/add_ticket/presentation/add_ticket_cubit/add_ticket_cubit.dart';
 import 'package:repair_hub/feature/add_ticket/presentation/screens/add_ticket_page.dart';
 import 'package:repair_hub/feature/app_home/view/home_cubit/home_cubit.dart';

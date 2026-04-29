@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:repair_hub/feature/app_home/view/home_cubit/home_cubit.dart';
-import 'package:repair_hub/feature/ticket_details/data/ticket_details_repo.dart';
+import 'package:repair_hub/feature/ticket_details/data/repository/ticket_details_repo.dart';
 import 'package:repair_hub/feature/ticket_details/presentation/cubit/ticket_details_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:repair_hub/core/shared/remote_data_sources/ticket_remote_data_source.dart';

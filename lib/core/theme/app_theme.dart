@@ -9,11 +9,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.primaryContainer.withAlpha(
-        (0.08 * 255).round(),
-      ),
+      scaffoldBackgroundColor: colorScheme.primaryContainer,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
@@ -85,9 +83,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -128,9 +124,7 @@ class AppTheme {
           ),
         ),
       ),
-      textTheme: Typography.material2021(
-        colorScheme: colorScheme,
-      ).white,
+      textTheme: Typography.material2021(colorScheme: colorScheme).white,
     );
   }
 }

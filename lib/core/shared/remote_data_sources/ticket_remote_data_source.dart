@@ -6,7 +6,7 @@ abstract class TicketRemoteDataSource {
   Future<List<Map<String, dynamic>>> getTickets();
   Future<List<Map<String, dynamic>>> searchTickets(String query);
   Future<Map<String, dynamic>> getTicketById(String ticketId);
-  Future<void> updateTicketStatus(String ticketId, String status);
+  Future<void> updateTicket(String ticketId, String status, String notes);
 
   // Updated to handle the full intake process including photos
   Future<String> createFullTicket({
@@ -63,9 +63,8 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   }) async {
     List<String> remoteUrls = [];
 
-    // 1. Upload Photos to Supabase Storage first
+    // 1. Upload Photos to Supabase Storage
     for (var path in localPhotoPaths) {
-      // Basic check: skip empty paths or stubs
       if (path.isEmpty || path == 'path') continue;
 
       final file = File(path);
@@ -80,7 +79,7 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
       remoteUrls.add(url);
     }
 
-    // 2. Call the RPC (PostgreSQL Function)
+    // 2. Call the (PostgreSQL Function)
     // This ensures Customer, Device, and Ticket are created in ONE atomic transaction.
     final response = await client.rpc(
       'create_full_ticket',
@@ -100,7 +99,18 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   }
 
   @override
-  Future<void> updateTicketStatus(String ticketId, String status) async {
-    await client.from('tickets').update({'status': status}).eq('id', ticketId);
+  Future<void> updateTicket(
+    String ticketId,
+    String status,
+    String notes,
+  ) async {
+    await client
+        .from('tickets')
+        .update({
+          'status': status,
+          'internal_notes': notes,
+          'public_notes': notes,
+        })
+        .eq('id', ticketId);
   }
 }
