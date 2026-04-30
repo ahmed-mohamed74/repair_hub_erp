@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repair_hub/core/dependency_injection/service_locator.dart';
@@ -18,7 +19,7 @@ class AppRoutes {
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: AppRoutes.home,
+    initialLocation: kIsWeb ? '/track' : AppRoutes.home,
     routes: [
       GoRoute(
         name: 'home',
@@ -48,12 +49,12 @@ class AppRouter {
         },
       ),
       GoRoute(
-      path: '/track',
-      builder: (context, state) => BlocProvider.value(
-        value: serviceLocator<WebTrackingCubit>(),
-        child: const CustomerTrackingScreen(),
+        path: '/track',
+        builder: (context, state) => BlocProvider.value(
+          value: serviceLocator<WebTrackingCubit>(),
+          child: const CustomerTrackingScreen(),
+        ),
       ),
-    ),
     ],
   );
 }

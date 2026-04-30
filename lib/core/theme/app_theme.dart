@@ -9,9 +9,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.primaryContainer,
+      scaffoldBackgroundColor: Colors.white,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.primaryContainer,
+        backgroundColor: Colors.white,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
