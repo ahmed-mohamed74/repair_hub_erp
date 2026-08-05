@@ -168,9 +168,9 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
       padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          const SizedBox(width: 12),
+          const SizedBox(width: 5),
           const Icon(Icons.search, color: Colors.grey),
-          const SizedBox(width: 8),
+          const SizedBox(width: 5),
           Expanded(
             child: TextField(
               controller: _searchController,
@@ -178,15 +178,18 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
                   TextInputAction.search, // Changes Enter key to Search icon
               onSubmitted: (_) => _handleSearch(), // Handles 'Enter' key press
               decoration: const InputDecoration(
+                fillColor: Colors.transparent,
                 hintText: "IMEI or Ticket ID",
                 border: InputBorder.none,
                 isDense: true,
               ),
             ),
           ),
+          const SizedBox(width: 5),
           ElevatedButton(
             onPressed: _handleSearch,
             style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF1A2233),
               padding: EdgeInsets.symmetric(
                 horizontal: width > 600 ? 24 : 12,
                 vertical: 18,
@@ -195,7 +198,7 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text("Track"),
+            child: const Text("Track", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -293,6 +296,7 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
               Text(
                 "#${(ticket[DbKeys.ticketNumber] ?? "---")}",
                 style: const TextStyle(
+                  color: Colors.black87,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -347,9 +351,15 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
   Widget _receiptButton(Map<String, dynamic> ticket, bool isMobile) {
     return OutlinedButton.icon(
       onPressed: () => _generatePdfReceipt(ticket),
-      icon: const Icon(Icons.download),
-      label: const Text("Download Receipt"),
-      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 60)),
+      icon: const Icon(Icons.download, color: Colors.black),
+      label: const Text(
+        "Download Receipt",
+        style: TextStyle(color: Colors.black),
+      ),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 60),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
     );
   }
 
@@ -371,11 +381,15 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
   Widget _infoTile(String label, String value) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+      Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
       const SizedBox(height: 4),
       Text(
         value,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
       ),
     ],
   );
@@ -401,7 +415,7 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
     borderRadius: BorderRadius.circular(20),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.03),
+        color: Colors.black.withValues(alpha: 0.03),
         blurRadius: 10,
         offset: const Offset(0, 4),
       ),
@@ -417,7 +431,7 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
       children: [
         const Text(
           "Latest Update",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
         const SizedBox(height: 8),
         Text(
@@ -434,7 +448,11 @@ class _CustomerTrackingScreenState extends State<CustomerTrackingScreen> {
       const SizedBox(height: 16),
       Text(
         t,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
       ),
       Text(d),
     ],
