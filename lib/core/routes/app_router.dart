@@ -6,12 +6,18 @@ import 'package:repair_hub/feature/add_ticket/presentation/add_ticket_cubit/add_
 import 'package:repair_hub/feature/add_ticket/presentation/screens/add_ticket_page.dart';
 import 'package:repair_hub/feature/app_home/view/home_cubit/home_cubit.dart';
 import 'package:repair_hub/feature/app_home/view/screens/home_screen.dart';
+import 'package:repair_hub/feature/auth/data/repositories/auth_repository.dart';
+import 'package:repair_hub/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:repair_hub/feature/auth/presentation/screens/login_page.dart';
+import 'package:repair_hub/feature/auth/presentation/screens/sign_up_screen.dart';
 import 'package:repair_hub/feature/customer_website/presentation/cubit/web_tracking_cubit.dart';
 import 'package:repair_hub/feature/customer_website/presentation/screens/customer_tracking_screen.dart';
 import 'package:repair_hub/feature/ticket_details/presentation/cubit/ticket_details_cubit.dart';
 import 'package:repair_hub/feature/ticket_details/presentation/screens/ticket_details_page.dart';
 
 class AppRoutes {
+  static const login = '/login';
+  static const signUp = '/sign-up';
   static const home = '/';
   static const addTicket = '/add-ticket';
   static const ticketDetails = '/ticket-details';
@@ -19,8 +25,28 @@ class AppRoutes {
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: kIsWeb ? '/track' : AppRoutes.home,
+    initialLocation: AppRoutes.login,
+    // initialLocation: kIsWeb ? '/track' : AppRoutes.home,
     routes: [
+      GoRoute(
+        name: 'login',
+        path: AppRoutes.login,
+        builder: (context, state) => BlocProvider(
+          create: (context) =>
+              AuthBloc(authRepository: serviceLocator<AuthRepository>()),
+          child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        name: 'sign-up',
+        path: AppRoutes.signUp,
+        builder: (context, state) => BlocProvider(
+          create: (context) =>
+              AuthBloc(authRepository: serviceLocator<AuthRepository>()),
+          child: const SignUpPage(),
+        ),
+      ),
+      // ----------------------
       GoRoute(
         name: 'home',
         path: AppRoutes.home,

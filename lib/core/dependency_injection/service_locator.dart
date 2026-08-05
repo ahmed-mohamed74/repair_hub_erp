@@ -1,5 +1,9 @@
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:repair_hub/core/network/connection_checker.dart';
 import 'package:repair_hub/feature/app_home/view/home_cubit/home_cubit.dart';
+import 'package:repair_hub/feature/auth/data/repositories/auth_repository.dart';
+import 'package:repair_hub/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:repair_hub/feature/customer_website/data/repository/web_tracking_repo.dart';
 import 'package:repair_hub/feature/customer_website/presentation/cubit/web_tracking_cubit.dart';
 import 'package:repair_hub/feature/ticket_details/data/repository/ticket_details_repo.dart';
@@ -19,6 +23,10 @@ void configureDependencies() {
     () => SupabaseService(),
   );
 
+  serviceLocator.registerLazySingleton<ConnectionChecker>(
+    () => ConnectionCheckerImpl(InternetConnection()),
+  );
+
   // Register the raw SupabaseClient
   serviceLocator.registerLazySingleton<SupabaseClient>(
     () => Supabase.instance.client,
@@ -31,6 +39,13 @@ void configureDependencies() {
   );
 
   // 3. Repositories
+  serviceLocator.registerLazySingleton<AuthRepository>(
+    () => AuthRepository(
+      serviceLocator<SupabaseService>(),
+      serviceLocator<ConnectionChecker>(),
+    ),
+  );
+
   serviceLocator.registerLazySingleton<AddTicketRepository>(
     () => AddTicketRepository(serviceLocator<TicketRemoteDataSource>()),
   );
@@ -60,6 +75,10 @@ void configureDependencies() {
   // Use Factory if you want the list to refresh from scratch every time
   serviceLocator.registerFactory(
     () => HomeCubit(repository: serviceLocator<TicketRepository>()),
+  );
+
+  serviceLocator.registerFactory(
+    () => AuthBloc(authRepository: serviceLocator<AuthRepository>()),
   );
 
   // NEW: Register Ticket Details Cubit

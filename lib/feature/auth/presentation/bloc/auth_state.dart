@@ -1,0 +1,33 @@
+part of 'auth_bloc.dart';
+
+@immutable
+sealed class AuthState {}
+
+final class AuthInitial extends AuthState {}
+
+
+final class AuthLoading extends AuthState {}
+
+final class AuthLoginSuccess extends AuthState {}
+
+final class AuthSignUpSuccess extends AuthState {
+  final String message;
+
+  AuthSignUpSuccess({required this.message});
+}
+
+final class AuthFailure extends AuthState {
+  final String errorMessage;
+
+  AuthFailure({required this.errorMessage});
+}
+
+class AuthOtpSentSuccess extends AuthState {
+  final String message;
+  AuthOtpSentSuccess({required this.message});
+}
+
+class AuthOtpVerifiedSuccess extends AuthState {
+  final UserModel user;
+  AuthOtpVerifiedSuccess({required this.user});
+}
