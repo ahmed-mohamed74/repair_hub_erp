@@ -70,7 +70,7 @@ Future<Either<String, String>> sendOtp({required String email}) async {
   }
 }
 
-Future<Either<String, UserModel>>   ({
+Future<Either<String, UserModel>> verifyOtp({
   required String email,
   required String token,
 }) async {
