@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:repair_hub/core/constants/db_constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,7 +10,6 @@ abstract class TicketRemoteDataSource {
   Future<void> updateTicket(String ticketId, String status, String notes);
   Future<Map<String, dynamic>?> getTicketByIdOrImei(String query);
 
-  // Updated to handle the full intake process including photos
   Future<String> createFullTicket({
     required String name,
     required String phone,
@@ -46,7 +46,7 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   @override
   Future<List<Map<String, dynamic>>> searchTickets(String query) async {
     return await client
-        .from('ticket_tracking_view')
+        .from(DbKeys.viewTicketTracking)
         .select()
         .or('imei.ilike.%$query%,customer_name.ilike.%$query%');
   }
@@ -62,41 +62,45 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
     required double price,
     required List<String> localPhotoPaths,
   }) async {
-    List<String> remoteUrls = [];
+    // 1. Parallel Uploading for better performance
+    final validPaths = localPhotoPaths
+        .where((path) => path.isNotEmpty && path != 'path')
+        .toList();
 
-    // 1. Upload Photos to Supabase Storage
-    for (var path in localPhotoPaths) {
-      if (path.isEmpty || path == 'path') continue;
-
-      final file = File(path);
-      final fileName = '${DateTime.now().microsecondsSinceEpoch}.jpg';
+    final uploadFutures = validPaths.map((path) async {
+      final fileName = '${DateTime.now().microsecondsSinceEpoch}_${path.split('/').last}';
       final storagePath = 'ticket_images/$fileName';
 
-      // Uploading to a bucket named 'repairs' (make sure this exists in Supabase)
-      await client.storage.from('repairs').upload(storagePath, file);
+      if (kIsWeb) {
+        // Cross-platform support for Flutter Web using Bytes
+        final bytes = await File(path).readAsBytes();
+        await client.storage.from('repairs').uploadBinary(storagePath, bytes);
+      } else {
+        final file = File(path);
+        await client.storage.from('repairs').upload(storagePath, file);
+      }
 
-      // Get the URL to save in the database
-      final url = client.storage.from('repairs').getPublicUrl(storagePath);
-      remoteUrls.add(url);
-    }
+      return client.storage.from('repairs').getPublicUrl(storagePath);
+    });
 
-    // 2. Call the (PostgreSQL Function)
-    // This ensures Customer, Device, and Ticket are created in ONE atomic transaction.
+    final List<String> remoteUrls = await Future.wait(uploadFutures);
+
+    // 2. Call PostgreSQL RPC Function
     final response = await client.rpc(
       'create_full_ticket',
       params: {
-        'p_customer_name': name,
-        'p_customer_phone': phone,
-        'p_brand_name': brand,
-        'p_model_name': model,
-        'p_imei': imei,
-        'p_description': description,
+        'p_customer_name': name.trim(),
+        'p_customer_phone': phone.trim(),
+        'p_brand_name': brand.trim(),
+        'p_model_name': model.trim(),
+        'p_imei': imei.trim(),
+        'p_description': description.trim(),
         'p_image_urls': remoteUrls,
         'p_estimated_price': price,
       },
     );
 
-    return response as String; // This returns the generated Ticket UUID
+    return response as String;
   }
 
   @override
@@ -106,28 +110,29 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
     String notes,
   ) async {
     await client
-        .from('tickets')
+        .from(DbKeys.tableTickets)
         .update({
           'status': status,
           'internal_notes': notes,
           'public_notes': notes,
         })
-        .eq('id', ticketId);
+        .eq(DbKeys.id, ticketId);
   }
 
   @override
   Future<Map<String, dynamic>?> getTicketByIdOrImei(String query) async {
     try {
-      final int? ticketNum = int.tryParse(query);
+      final trimmedQuery = query.trim();
+      final int? ticketNum = int.tryParse(trimmedQuery);
 
       var supabaseQuery = client.from(DbKeys.viewTicketTracking).select();
 
       if (ticketNum != null) {
         return await supabaseQuery
-            .or('${DbKeys.ticketNumber}.eq.$ticketNum,imei.eq.$query')
+            .or('${DbKeys.ticketNumber}.eq.$ticketNum,imei.eq.$trimmedQuery')
             .maybeSingle();
       } else {
-        return await supabaseQuery.eq('imei', query).maybeSingle();
+        return await supabaseQuery.eq('imei', trimmedQuery).maybeSingle();
       }
     } catch (e) {
       throw Exception("Failed to fetch tracking data: $e");

@@ -44,16 +44,29 @@ class AppTheme {
           color: colorScheme.onSurface.withAlpha((0.6 * 255).round()),
         ),
       ),
+
+      // ---------------- LIGHT ELEVATED BUTTON THEME ----------------
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
+          disabledBackgroundColor: colorScheme.onSurface.withAlpha((0.12 * 255).round()),
+          disabledForegroundColor: colorScheme.onSurface.withAlpha((0.38 * 255).round()),
+          elevation: 1,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          minimumSize: const Size.fromHeight(52), // الارتفاع الموصى به لزر إدخال رئيسي
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
+      // -------------------------------------------------------------
+
       textTheme: Typography.material2021().white.apply(
         bodyColor: colorScheme.onSurface,
         displayColor: colorScheme.onSurface,
@@ -104,6 +117,29 @@ class AppTheme {
         hintStyle: const TextStyle(color: Color(0xFF7C8AA6)),
         labelStyle: const TextStyle(color: Color(0xFFB0BECD)),
       ),
+
+      // ---------------- DARK ELEVATED BUTTON THEME ----------------
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFF1F293D),
+          disabledForegroundColor: const Color(0xFF4B5563),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          minimumSize: const Size.fromHeight(52),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      // ------------------------------------------------------------
+
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF1D4ED8),
